@@ -1,3 +1,3 @@
-module github.com/go-telegram-bot-api/telebot-api
+module github.com/egovorukhin/telebot-api
 
 go 1.16
