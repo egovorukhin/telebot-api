@@ -182,7 +182,7 @@ type User struct {
 	// IsBot true, if this user is a bot
 	//
 	// optional
-	IsBot bool `json:"is_bot,omitempty"`
+	IsBot bool `json:"is_bot"`
 	// IsPremium true, if user has Telegram Premium
 	//
 	// optional
