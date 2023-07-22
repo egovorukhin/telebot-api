@@ -29,6 +29,8 @@ type BotAPI struct {
 	Client          HTTPClient `json:"-"`
 	shutdownChannel chan interface{}
 
+	out io.Writer
+
 	apiEndpoint string
 }
 
