@@ -462,8 +462,8 @@ func (bot *BotAPI) GetUpdatesChan(config UpdateConfig) UpdatesChannel {
 					config.Offset = update.UpdateID + 1
 					ch <- update
 				}
-				time.Sleep(bot.Interval)
 			}
+			time.Sleep(bot.Interval)
 		}
 	}()
 
