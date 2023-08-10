@@ -58,6 +58,7 @@ func TestNewBotAPI_notoken(t *testing.T) {
 
 func TestGetUpdates(t *testing.T) {
 	bot, _ := getBot(t)
+	bot.SetInterval(1 * time.Second)
 
 	u := NewUpdate(0)
 

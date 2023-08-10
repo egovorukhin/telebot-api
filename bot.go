@@ -21,9 +21,10 @@ type HTTPClient interface {
 
 // BotAPI allows you to interact with the Telegram Bot API.
 type BotAPI struct {
-	Token  string `json:"token"`
-	Debug  bool   `json:"debug"`
-	Buffer int    `json:"buffer"`
+	Token    string        `json:"token"`
+	Debug    bool          `json:"debug"`
+	Buffer   int           `json:"buffer"`
+	Interval time.Duration `json:"interval"`
 
 	Self            User       `json:"-"`
 	Client          HTTPClient `json:"-"`
@@ -58,6 +59,7 @@ func NewBotAPIWithClient(token, apiEndpoint string, client HTTPClient) (*BotAPI,
 		Token:           token,
 		Client:          client,
 		Buffer:          100,
+		Interval:        100 * time.Millisecond,
 		shutdownChannel: make(chan interface{}),
 
 		apiEndpoint: apiEndpoint,
@@ -71,6 +73,11 @@ func NewBotAPIWithClient(token, apiEndpoint string, client HTTPClient) (*BotAPI,
 	bot.Self = self
 
 	return bot, nil
+}
+
+// SetInterval Set interval requests for getUpdates
+func (bot *BotAPI) SetInterval(interval time.Duration) {
+	bot.Interval = interval
 }
 
 // SetAPIEndpoint changes the Telegram Bot API endpoint used by the instance.
@@ -455,6 +462,7 @@ func (bot *BotAPI) GetUpdatesChan(config UpdateConfig) UpdatesChannel {
 					config.Offset = update.UpdateID + 1
 					ch <- update
 				}
+				time.Sleep(bot.Interval)
 			}
 		}
 	}()
