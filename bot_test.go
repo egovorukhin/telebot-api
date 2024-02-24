@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TestToken               = "153667468:AAHlSHlMqSt1f_uFmVRJbm5gntu2HI4WW8I"
+	TestToken               = "856648700:AAFyYSAnP3e71hm6IyqRL5FRe0j3WivI0ys" //"153667468:AAHlSHlMqSt1f_uFmVRJbm5gntu2HI4WW8I"
 	ChatID                  = 76918703
 	Channel                 = "@tgbotapitest"
 	SupergroupChatID        = -1001120141283
@@ -121,6 +121,26 @@ func TestCopyMessage(t *testing.T) {
 
 	if messageID.MessageID == message.MessageID {
 		t.Error("copied message ID was the same as original message")
+	}
+}
+
+func TestDownloadFile(t *testing.T) {
+	bot, _ := getBot(t)
+
+	filePath := "file_0.jpg"
+	resp, err := bot.DownloadFile("photos/" + filePath)
+	if err != nil {
+		t.Error(err)
+	}
+	defer resp.Body.Close()
+	file, err := os.Create(filePath)
+	if err != nil {
+		t.Error(err)
+	}
+	defer file.Close()
+	_, err = file.ReadFrom(resp.Body)
+	if err != nil {
+		t.Error(err)
 	}
 }
 

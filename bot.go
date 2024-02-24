@@ -99,6 +99,14 @@ func buildParams(in Params) url.Values {
 	return out
 }
 
+func (bot *BotAPI) DownloadFile(filePath string) (*http.Response, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf(FileEndpoint, bot.Token, filePath), nil)
+	if err != nil {
+		return nil, err
+	}
+	return bot.Client.Do(req)
+}
+
 // MakeRequest makes a request to a specific endpoint with our token.
 func (bot *BotAPI) MakeRequest(endpoint string, params Params) (*APIResponse, error) {
 	if bot.Debug {
