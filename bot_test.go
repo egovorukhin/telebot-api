@@ -1,6 +1,7 @@
 package tgbotapi
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -8,8 +9,8 @@ import (
 )
 
 const (
-	TestToken               = "856648700:AAFyYSAnP3e71hm6IyqRL5FRe0j3WivI0ys" //"153667468:AAHlSHlMqSt1f_uFmVRJbm5gntu2HI4WW8I"
-	ChatID                  = 76918703
+	TestToken               = "6608527146:AAEGUco77wtqmEt_o0yW_JodDBX7J-Baq9Y" //"153667468:AAHlSHlMqSt1f_uFmVRJbm5gntu2HI4WW8I"
+	ChatID                  = -1002044425289                                   //76918703
 	Channel                 = "@tgbotapitest"
 	SupergroupChatID        = -1001120141283
 	ReplyToMessageID        = 35
@@ -122,6 +123,20 @@ func TestCopyMessage(t *testing.T) {
 	if messageID.MessageID == message.MessageID {
 		t.Error("copied message ID was the same as original message")
 	}
+}
+
+func TestUploadFile(t *testing.T) {
+	bot, _ := getBot(t)
+	data, err := os.ReadFile("image.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	photo := NewPhoto(ChatID, FileBytes{Name: "image.jpg", Bytes: data})
+	resp, err := bot.Send(photo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(resp)
 }
 
 func TestDownloadFile(t *testing.T) {
