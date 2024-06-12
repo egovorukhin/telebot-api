@@ -127,7 +127,7 @@ func TestCopyMessage(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	bot, _ := getBot(t)
-	data, err := os.ReadFile("image.jpg")
+	data, err := os.ReadFile("tests/image.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}

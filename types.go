@@ -261,6 +261,32 @@ type Chat struct {
 	//
 	// optional
 	LastName string `json:"last_name,omitempty"`
+	// IsForum True, if the supergroup chat is a forum (has topics enabled)
+	IsForum bool `json:"is_forum"`
+}
+
+// ChatFullInfo represents a chat. https://core.telegram.org/bots/api#chatfullinfo
+type ChatFullInfo struct {
+	// ID is a unique identifier for this chat
+	ID int64 `json:"id"`
+	// Type of chat, can be either “private”, “group”, “supergroup” or “channel”
+	Type string `json:"type"`
+	// Title for supergroups, channels and group chats
+	//
+	// optional
+	Title string `json:"title,omitempty"`
+	// UserName for private chats, supergroups and channels if available
+	//
+	// optional
+	UserName string `json:"username,omitempty"`
+	// FirstName of the other party in a private chat
+	//
+	// optional
+	FirstName string `json:"first_name,omitempty"`
+	// LastName of the other party in a private chat
+	//
+	// optional
+	LastName string `json:"last_name,omitempty"`
 	// Photo is a chat photo
 	Photo *ChatPhoto `json:"photo"`
 	// Bio is the bio of the other party in a private chat. Returned only in
@@ -361,6 +387,10 @@ func (c Chat) ChatConfig() ChatConfig {
 type Message struct {
 	// MessageID is a unique message identifier inside this chat
 	MessageID int `json:"message_id"`
+	// MessageThreadId is a unique identifier of a message thread to which the message belongs; for supergroups only
+	//
+	// optional
+	MessageThreadId int `json:"message_thread_id"`
 	// From is a sender, empty for messages sent to channels;
 	//
 	// optional
@@ -372,43 +402,63 @@ type Message struct {
 	//
 	// optional
 	SenderChat *Chat `json:"sender_chat,omitempty"`
-	// Date of the message was sent in Unix time
-	Date int `json:"date"`
-	// Chat is the conversation the message belongs to
-	Chat *Chat `json:"chat"`
-	// ForwardFrom for forwarded messages, sender of the original message;
+	// SenderBoostCount if the sender of the message boosted the chat, the number of boosts added by the user
 	//
 	// optional
+	SenderBoostCount int `json:"sender_boost_count"`
+	// SenderBusinessBot the bot that actually sent the message on behalf of the business account. Available only for outgoing messages sent on behalf of the connected business account.
+	//
+	// optional
+	SenderBusinessBot *User `json:"sender_business_bot,omitempty"`
+	// Date of the message was sent in Unix time
+	Date int `json:"date"`
+	// BusinessConnectionId unique identifier of the business connection from which the message was received. If non-empty, the message belongs to a chat of the corresponding business account that is independent from any potential bot chat which might share the same identifier.
+	//
+	// optional
+	BusinessConnectionId string `json:"business_connection_id"`
+	// Chat is the conversation the message belongs to
+	Chat *Chat `json:"chat"`
+	// ForwardOrigin Information about the original message for forwarded messages
+	//
+	// optional
+	ForwardOrigin *ForwardOrigin `json:"forward_origin,omitempty"`
+	// ForwardFrom for forwarded messages, sender of the original message;
+	//
+	// optional. deprecated
 	ForwardFrom *User `json:"forward_from,omitempty"`
 	// ForwardFromChat for messages forwarded from channels,
 	// information about the original channel;
 	//
-	// optional
+	// optional. deprecated
 	ForwardFromChat *Chat `json:"forward_from_chat,omitempty"`
 	// ForwardFromMessageID for messages forwarded from channels,
 	// identifier of the original message in the channel;
 	//
-	// optional
+	// optional. deprecated
 	ForwardFromMessageID int `json:"forward_from_message_id,omitempty"`
 	// ForwardSignature for messages forwarded from channels, signature of the
 	// post author if present
 	//
-	// optional
+	// optional. deprecated
 	ForwardSignature string `json:"forward_signature,omitempty"`
 	// ForwardSenderName is the sender's name for messages forwarded from users
 	// who disallow adding a link to their account in forwarded messages
 	//
-	// optional
+	// optional. deprecated
 	ForwardSenderName string `json:"forward_sender_name,omitempty"`
 	// ForwardDate for forwarded messages, date the original message was sent in Unix time;
 	//
-	// optional
+	// optional. deprecated
 	ForwardDate int `json:"forward_date,omitempty"`
 	// IsAutomaticForward is true if the message is a channel post that was
 	// automatically forwarded to the connected discussion group.
 	//
 	// optional
 	IsAutomaticForward bool `json:"is_automatic_forward,omitempty"`
+	// IsTopicMessage True, if the message is sent to a forum topic
+	//
+	// optional
+	IsTopicMessage bool `json:"is_topic_message"`
 	// ReplyToMessage for replies, the original message.
 	// Note that the Message object in this field will not contain further ReplyToMessage fields
 	// even if it itself is a reply;
@@ -3327,4 +3377,47 @@ type PreCheckoutQuery struct {
 	//
 	// optional
 	OrderInfo *OrderInfo `json:"order_info,omitempty"`
+}
+
+// ForwardOrigin This object describes the origin of a message. It can be one of
+// MessageOriginUser
+// MessageOriginHiddenUser
+// MessageOriginChat
+// MessageOriginChannel
+type ForwardOrigin struct {
+	*MessageOriginUser
+	*MessageOriginHiddenUser
+	*MessageOriginChat
+	*MessageOriginChannel
+}
+
+// MessageOriginUser The message was originally sent by a known user.
+type MessageOriginUser struct {
+	Type       string `json:"type"`
+	Date       int64  `json:"date"`
+	SenderUser *User  `json:"sender_user,omitempty"`
+}
+
+// MessageOriginHiddenUser The message was originally sent by an unknown user.
+type MessageOriginHiddenUser struct {
+	Type           string `json:"type"`
+	Date           int64  `json:"date"`
+	SenderUserName string `json:"sender_user_name"`
+}
+
+// MessageOriginChat The message was originally sent on behalf of a chat to a group chat.
+type MessageOriginChat struct {
+	Type            string `json:"type"`
+	Date            int64  `json:"date"`
+	SenderChat      *Chat  `json:"sender_chat,omitempty"`
+	AuthorSignature string `json:"author_signature"`
+}
+
+// MessageOriginChannel The message was originally sent to a channel chat.
+type MessageOriginChannel struct {
+	Type            string `json:"type"`
+	Date            int64  `json:"date"`
+	Chat            *Chat  `json:"chat,omitempty"`
+	MessageId       int64  `json:"message_id"`
+	AuthorSignature string `json:"author_signature"`
 }
