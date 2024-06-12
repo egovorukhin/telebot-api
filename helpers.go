@@ -15,12 +15,20 @@ import (
 //
 // chatID is where to send it, text is the message text.
 func NewMessage(chatID int64, text string) MessageConfig {
+	return NewMessageThread(chatID, 0, text)
+}
+
+// NewMessageThread creates a new Message to Topic.
+//
+// chatID is where to send it, text is the message text, threadId topic id.
+func NewMessageThread(chatID int64, threadId int, text string) MessageConfig {
 	return MessageConfig{
 		BaseChat: BaseChat{
 			ChatID:           chatID,
 			ReplyToMessageID: 0,
 		},
 		Text:                  text,
+		MessageThreadId:       threadId,
 		DisableWebPagePreview: false,
 	}
 }
