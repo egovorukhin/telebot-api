@@ -25,7 +25,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertLen(t, params, 2)
-	assertEq(t, params["chat_id"], "-1002044425289.000000")
+	assertEq(t, params["chat_id"], "-1002044425289")
 	assertLen(t, params, 2)
 	assertEq(t, params["text"], "Hello World!")
 }

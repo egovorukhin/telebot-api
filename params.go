@@ -1,6 +1,7 @@
 package tgbotapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"reflect"
 	"strconv"
@@ -12,7 +13,10 @@ type Params map[string]string
 func (p Params) UnmarshalJSON(data []byte) error {
 
 	var d map[string]interface{}
-	if err := json.Unmarshal(data, &d); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	if err := decoder.Decode(&d); err != nil {
+		//if err := json.Unmarshal(data, &d); err != nil {
 		return err
 	}
 
