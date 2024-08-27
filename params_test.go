@@ -1,6 +1,7 @@
 package tgbotapi
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -15,6 +16,18 @@ func assertEq(t *testing.T, a interface{}, b interface{}) {
 	if a != b {
 		t.Fatalf("Values did not match, a: %v, b: %v\n", a, b)
 	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	params := make(Params)
+	data := `{"chat_id":-1002044425289, "text":"Hello World!"}`
+	if err := json.Unmarshal([]byte(data), &params); err != nil {
+		t.Fatal(err)
+	}
+	assertLen(t, params, 2)
+	assertEq(t, params["chat_id"], "-1002044425289.000000")
+	assertLen(t, params, 2)
+	assertEq(t, params["text"], "Hello World!")
 }
 
 func TestAddNonEmpty(t *testing.T) {

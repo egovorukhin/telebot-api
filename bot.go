@@ -93,7 +93,7 @@ func buildParams(in Params) url.Values {
 	out := url.Values{}
 
 	for key, value := range in {
-		out.Set(key, value)
+		out.Set(key, fmt.Sprintf("%v", value))
 	}
 
 	return out
@@ -192,7 +192,7 @@ func (bot *BotAPI) UploadFiles(endpoint string, params Params, files []RequestFi
 		defer m.Close()
 
 		for field, value := range params {
-			if err := m.WriteField(field, value); err != nil {
+			if err := m.WriteField(field, fmt.Sprintf("%v", value)); err != nil {
 				w.CloseWithError(err)
 				return
 			}

@@ -9,6 +9,41 @@ import (
 // Params represents a set of parameters that gets passed to a request.
 type Params map[string]string
 
+func (p Params) UnmarshalJSON(data []byte) error {
+
+	var d map[string]interface{}
+	if err := json.Unmarshal(data, &d); err != nil {
+		return err
+	}
+
+	for key, value := range d {
+		switch t := value.(type) {
+		case string:
+			p.AddNonEmpty(key, t)
+		case int:
+			p.AddNonZero(key, t)
+		case int64:
+			p.AddNonZero64(key, t)
+		case bool:
+			p.AddBool(key, t)
+		case float64:
+			p.AddNonZeroFloat(key, t)
+		case interface{}:
+			if err := p.AddInterface(key, t); err != nil {
+				return err
+			}
+		default:
+			b, err := json.Marshal(t)
+			if err != nil {
+				return err
+			}
+			p[key] = string(b)
+		}
+	}
+
+	return nil
+}
+
 // AddNonEmpty adds a value if it not an empty string.
 func (p Params) AddNonEmpty(key, value string) {
 	if value != "" {
