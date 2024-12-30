@@ -421,50 +421,35 @@ type Message struct {
 	// ForwardOrigin Information about the original message for forwarded messages
 	//
 	// optional
-	ForwardOrigin *ForwardOrigin `json:"forward_origin,omitempty"`
-	// ForwardFrom for forwarded messages, sender of the original message;
+	ForwardOrigin *MessageOrigin `json:"forward_origin,omitempty"`
+	// IsTopicMessage True, if the message is sent to a forum topic
 	//
-	// optional. deprecated
-	ForwardFrom *User `json:"forward_from,omitempty"`
-	// ForwardFromChat for messages forwarded from channels,
-	// information about the original channel;
-	//
-	// optional. deprecated
-	ForwardFromChat *Chat `json:"forward_from_chat,omitempty"`
-	// ForwardFromMessageID for messages forwarded from channels,
-	// identifier of the original message in the channel;
-	//
-	// optional. deprecated
-	ForwardFromMessageID int `json:"forward_from_message_id,omitempty"`
-	// ForwardSignature for messages forwarded from channels, signature of the
-	// post author if present
-	//
-	// optional. deprecated
-	ForwardSignature string `json:"forward_signature,omitempty"`
-	// ForwardSenderName is the sender's name for messages forwarded from users
-	// who disallow adding a link to their account in forwarded messages
-	//
-	// optional. deprecated
-	ForwardSenderName string `json:"forward_sender_name,omitempty"`
-	// ForwardDate for forwarded messages, date the original message was sent in Unix time;
-	//
-	// optional. deprecated
-	ForwardDate int `json:"forward_date,omitempty"`
+	// optional
+	IsTopicMessage bool `json:"is_topic_message"`
 	// IsAutomaticForward is true if the message is a channel post that was
 	// automatically forwarded to the connected discussion group.
 	//
 	// optional
 	IsAutomaticForward bool `json:"is_automatic_forward,omitempty"`
-	// IsTopicMessage True, if the message is sent to a forum topic
-	//
-	// optional
-	IsTopicMessage bool `json:"is_topic_message"`
 	// ReplyToMessage for replies, the original message.
 	// Note that the Message object in this field will not contain further ReplyToMessage fields
 	// even if it itself is a reply;
 	//
 	// optional
 	ReplyToMessage *Message `json:"reply_to_message,omitempty"`
+	// ExternalReply information about the message that is being replied to,
+	// which may come from another chat or forum topic
+	//
+	// optional
+	ExternalReply *ExternalReplyInfo `json:"external_reply,omitempty"`
+	// Quote for replies that quote part of the original message, the quoted part of the message
+	//
+	// optional
+	Quote *TextQuote `json:"quote,omitempty"`
+	// ReplyToStory For replies to a story, the original story
+	//
+	// optional
+	ReplyToStory *Story `json:"reply_to_story,omitempty"`
 	// ViaBot through which the message was sent;
 	//
 	// optional
@@ -477,6 +462,11 @@ type Message struct {
 	//
 	// optional
 	HasProtectedContent bool `json:"has_protected_content,omitempty"`
+	// IsFromOffline True, if the message was sent by an implicit action, for example,
+	// as an away or a greeting business message, or as a scheduled message
+	//
+	// optional
+	IsFromOffline bool `json:"is_from_offline,omitempty"`
 	// MediaGroupID is the unique identifier of a media message group this message belongs to;
 	//
 	// optional
@@ -494,16 +484,20 @@ type Message struct {
 	//
 	// optional
 	Entities []MessageEntity `json:"entities,omitempty"`
+	// 	LinkPreviewOptions Options used for link preview generation for the message,
+	//	if it is a text message and link preview options were changed
+	//
+	// optional
+	LinkPreviewOptions *LinkPreviewOptions `json:"link_preview_options,omitempty"`
+	// EffectId Unique identifier of the message effect added to the message
+	//
+	// optional
+	EffectId string `json:"effect_id,omitempty"`
 	// Animation message is an animation, information about the animation.
 	// For backward compatibility, when this field is set, the document field will also be set;
 	//
 	// optional
 	Animation *Animation `json:"animation,omitempty"`
-	// PremiumAnimation message is an animation, information about the animation.
-	// For backward compatibility, when this field is set, the document field will also be set;
-	//
-	// optional
-	PremiumAnimation *Animation `json:"premium_animation,omitempty"`
 	// Audio message is an audio file, information about the file;
 	//
 	// optional
@@ -512,6 +506,10 @@ type Message struct {
 	//
 	// optional
 	Document *Document `json:"document,omitempty"`
+	// PaidMedia message contains paid media; information about the paid media
+	//
+	// optional
+	PaidMedia *PaidMediaInfo `json:"paid_media,omitempty"`
 	// Photo message is a photo, available sizes of the photo;
 	//
 	// optional
@@ -520,6 +518,10 @@ type Message struct {
 	//
 	// optional
 	Sticker *Sticker `json:"sticker,omitempty"`
+	// Story message is a forwarded story
+	//
+	// optional
+	Story *Story `json:"story,omitempty"`
 	// Video message is a video, information about the video;
 	//
 	// optional
@@ -536,7 +538,8 @@ type Message struct {
 	//
 	// optional
 	Caption string `json:"caption,omitempty"`
-	// CaptionEntities;
+	// CaptionEntities For messages with a caption, special entities like usernames,
+	// URLs, bot commands, etc. that appear in the caption
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
@@ -629,12 +632,11 @@ type Message struct {
 	//
 	// optional
 	MigrateFromChatID int64 `json:"migrate_from_chat_id,omitempty"`
-	// PinnedMessage is a specified message was pinned.
-	// Note that the Message object in this field will not contain further ReplyToMessage
-	// fields even if it is itself a reply;
+	// PinnedMessage  Specified message was pinned. Note that the
+	// Message object in this field will not contain further reply_to_message fields even if it itself is a reply.
 	//
 	// optional
-	PinnedMessage *Message `json:"pinned_message,omitempty"`
+	PinnedMessage *MaybeInaccessibleMessage `json:"pinned_message,omitempty"`
 	// Invoice message is an invoice for a payment;
 	//
 	// optional
@@ -644,11 +646,28 @@ type Message struct {
 	//
 	// optional
 	SuccessfulPayment *SuccessfulPayment `json:"successful_payment,omitempty"`
+	// RefundedPayment message is a service message about a refunded payment, information about the payment
+	//
+	// optional
+	RefundedPayment *RefundedPayment `json:"refunded_payment,omitempty"`
+	// UsersShared Service message: users were shared with the bot
+	//
+	// optional
+	UsersShared *UsersShared `json:"users_shared,omitempty"`
+	// ChatShared Service message: a chat was shared with the bot
+	//
+	// optional
+	ChatShared *ChatShared `json:"chat_shared,omitempty"`
 	// ConnectedWebsite is the domain name of the website on which the user has
 	// logged in;
 	//
 	// optional
 	ConnectedWebsite string `json:"connected_website,omitempty"`
+	// Service message: the user allowed the bot to write messages after adding it to the attachment or side menu,
+	// launching a Web App from a link, or accepting an explicit request from a Web App sent by the method requestWriteAccess
+	//
+	// optional
+	WriteAccessAllowed *WriteAccessAllowed `json:"write_access_allowed,omitempty"`
 	// PassportData is a Telegram Passport data;
 	//
 	// optional
@@ -658,6 +677,54 @@ type Message struct {
 	//
 	// optional
 	ProximityAlertTriggered *ProximityAlertTriggered `json:"proximity_alert_triggered,omitempty"`
+	// BoostAdded Service message: user boosted the chat
+	//
+	// optional
+	BoostAdded *ChatBoostAdded `json:"boost_added,omitempty"`
+	// ChatBackgroundSet Service message: chat background set
+	//
+	// optional
+	ChatBackgroundSet *ChatBackground `json:"chat_background_set,omitempty"`
+	// ForumTopicCreated Service message: forum topic created
+	//
+	// optional
+	ForumTopicCreated *ForumTopicCreated `json:"forum_topic_created,omitempty"`
+	// ForumTopicEdited Service message: forum topic edited
+	//
+	// optional
+	ForumTopicEdited *ForumTopicEdited `json:"forum_topic_edited,omitempty"`
+	// ForumTopicClosed Service message: forum topic closed
+	//
+	// optional
+	ForumTopicClosed *ForumTopicClosed `json:"forum_topic_closed,omitempty"`
+	// ForumTopicReopened Service message: forum topic reopened
+	//
+	// optional
+	ForumTopicReopened *ForumTopicReopened `json:"forum_topic_reopened,omitempty"`
+	// GeneralForumTopicHidden Service message: the 'General' forum topic hidden
+	//
+	// optional
+	GeneralForumTopicHidden *GeneralForumTopicHidden `json:"general_forum_topic_hidden,omitempty"`
+	// GeneralForumTopicUnhidden Service message: the 'General' forum topic unhidden
+	//
+	// optional
+	GeneralForumTopicUnhidden *GeneralForumTopicUnhidden `json:"general_forum_topic_unhidden,omitempty"`
+	// GiveawayCreated Service message: a scheduled giveaway was created
+	//
+	// optional
+	GiveawayCreated *GiveawayCreated `json:"giveaway_created,omitempty"`
+	// Giveaway The message is a scheduled giveaway message
+	//
+	// optional
+	Giveaway *Giveaway `json:"giveaway,omitempty"`
+	// GiveawayWinners A giveaway with public winners was completed
+	//
+	// optional
+	GiveawayWinners *GiveawayWinners `json:"giveaway_winners,omitempty"`
+	// GiveawayCompleted Service message: a giveaway without public winners was completed
+	//
+	// optional
+	GiveawayCompleted *GiveawayCompleted `json:"giveaway_completed,omitempty"`
 	// VideoChatScheduled is a service message: video chat scheduled.
 	//
 	// optional
@@ -3379,12 +3446,12 @@ type PreCheckoutQuery struct {
 	OrderInfo *OrderInfo `json:"order_info,omitempty"`
 }
 
-// ForwardOrigin This object describes the origin of a message. It can be one of
+// MessageOrigin This object describes the origin of a message. It can be one of
 // MessageOriginUser
 // MessageOriginHiddenUser
 // MessageOriginChat
 // MessageOriginChannel
-type ForwardOrigin struct {
+type MessageOrigin struct {
 	*MessageOriginUser
 	*MessageOriginHiddenUser
 	*MessageOriginChat
@@ -3418,6 +3485,313 @@ type MessageOriginChannel struct {
 	Type            string `json:"type"`
 	Date            int64  `json:"date"`
 	Chat            *Chat  `json:"chat,omitempty"`
-	MessageId       int64  `json:"message_id"`
+	MessageID       int    `json:"message_id"`
 	AuthorSignature string `json:"author_signature"`
+}
+
+// ExternalReplyInfo This object contains information about a message that is being replied to,
+// which may come from another chat or forum topic.
+type ExternalReplyInfo struct {
+	Origin    MessageOrigin `json:"origin"`
+	Chat      *Chat         `json:"chat,omitempty"`
+	MessageID int           `json:"message_id"`
+}
+
+// TextQuote This object contains information about the quoted part of a message that is replied to by the given message.
+type TextQuote struct {
+	// Text of the quoted part of a message that is replied to by the given message
+	Text string `json:"text"`
+	// Special entities that appear in the quote.
+	// Currently, only bold, italic, underline, strikethrough,
+	//spoiler, and custom_emoji entities are kept in quotes.
+	//
+	// optional
+	Entities []MessageEntity `json:"entities,omitempty"`
+	// Approximate quote position in the original message in UTF-16 code units as specified by the sender
+	Position int `json:"position"`
+	// True, if the quote was chosen manually by the message sender.
+	// Otherwise, the quote was added automatically by the server.
+	//
+	// optional
+	IsManual bool `json:"is_manual,omitempty"`
+}
+
+// Story This object represents a story.
+type Story struct {
+	// Chat that posted the story
+	Chat Chat `json:"chat"`
+	// Unique identifier for the story in the chat
+	Id int64 `json:"id"`
+}
+
+// LinkPreviewOptions Describes the options used for link preview generation.
+type LinkPreviewOptions struct {
+	// True, if the link preview is disabled
+	//
+	// optional
+	IsDisabled bool `json:"is_disabled,omitempty"`
+	// URL to use for the link preview. If empty, then the first URL found in the message text will be used
+	//
+	// optional
+	Url string `json:"url,omitempty"`
+	// True, if the media in the link preview is supposed to be shrunk;
+	// ignored if the URL isn't explicitly specified or media size change isn't supported for the preview
+	//
+	// optional
+	PreferSmallMedia bool `json:"prefer_small_media,omitempty"`
+	// True, if the media in the link preview is supposed to be enlarged;
+	// ignored if the URL isn't explicitly specified or media size change isn't supported for the preview
+	//
+	// optional
+	PreferLargeMedia bool `json:"prefer_large_media,omitempty"`
+	// True, if the link preview must be shown above the message text;
+	// otherwise, the link preview will be shown below the message text
+	//
+	// optional
+	ShowAboveText bool `json:"show_above_text,omitempty"`
+}
+
+// PaidMediaInfo Describes the paid media added to a message.
+type PaidMediaInfo struct {
+	StarCount int         `json:"star_count"`
+	PaidMedia []PaidMedia `json:"paid_media"`
+}
+
+// PaidMedia This object describes paid media. Currently, it can be one of
+type PaidMedia struct {
+	*PaidMediaPreview
+	*PaidMediaPhoto
+	*PaidMediaVideo
+}
+
+// PaidMediaPreview The paid media isn't available before the payment.
+type PaidMediaPreview struct {
+	Type     string `json:"type"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
+	Duration int    `json:"duration"`
+}
+
+// PaidMediaPhoto The paid media is a photo.
+type PaidMediaPhoto struct {
+	Type  string      `json:"type"`
+	Photo []PhotoSize `json:"photo"`
+}
+
+// PaidMediaVideo The paid media is a video.
+type PaidMediaVideo struct {
+	Type  string `json:"type"`
+	Video Video  `json:"video"`
+}
+
+// MaybeInaccessibleMessage This object describes a message that can be inaccessible to the bot. It can be one of
+type MaybeInaccessibleMessage struct {
+	*Message
+	*InaccessibleMessage
+}
+
+// InaccessibleMessage This object describes a message that was deleted or is otherwise inaccessible to the bot.
+type InaccessibleMessage struct {
+	Chat      Chat  `json:"chat"`
+	MessageID int   `json:"message_id"`
+	Date      int64 `json:"date"`
+}
+
+// RefundedPayment This object contains basic information about a refunded payment.
+type RefundedPayment struct {
+	Currency                string `json:"currency"`
+	TotalAmount             int    `json:"total_amount"`
+	InvoicePayload          string `json:"invoice_payload"`
+	TelegramPaymentChargeID string `json:"telegram_payment_charge_id"`
+	ProviderPaymentChargeID string `json:"provider_payment_charge_id,omitempty"`
+}
+
+// UsersShared This object contains information about the users whose
+// identifiers were shared with the bot using a KeyboardButtonRequestUsers button.
+type UsersShared struct {
+	RequestID int          `json:"request_id"`
+	Users     []SharedUser `json:"users"`
+}
+
+// SharedUser This object contains information about a user that was
+// shared with the bot using a KeyboardButtonRequestUsers button.
+type SharedUser struct {
+	UserID    int64       `json:"user_id"`
+	FirstName string      `json:"first_name,omitempty"`
+	LastName  string      `json:"last_name,omitempty"`
+	Username  string      `json:"username,omitempty"`
+	Photo     []PhotoSize `json:"photo,omitempty"`
+}
+
+// ChatShared This object contains information about a chat that was
+// shared with the bot using a KeyboardButtonRequestChat button.
+type ChatShared struct {
+	RequestID int         `json:"request_id"`
+	ChatID    int64       `json:"chat_id"`
+	Title     string      `json:"title,omitempty"`
+	Username  string      `json:"username,omitempty"`
+	Photo     []PhotoSize `json:"photo,omitempty"`
+}
+
+// WriteAccessAllowed This object represents a service message about a user allowing a bot to write messages
+// after adding it to the attachment menu, launching a Web App from a link,
+// or accepting an explicit request from a Web App sent by the method requestWriteAccess.
+type WriteAccessAllowed struct {
+	FromRequest        bool   `json:"from_request,omitempty"`
+	WebAppName         string `json:"web_app_name,omitempty"`
+	FromAttachmentMenu bool   `json:"from_attachment_menu,omitempty"`
+}
+
+// ChatBoostAdded This object represents a service message about a user boosting a chat.
+type ChatBoostAdded struct {
+	BoostCount int `json:"boost_count"`
+}
+
+// ChatBackground This object represents a chat background.
+type ChatBackground struct {
+	Type BackgroundType `json:"type"`
+}
+
+// BackgroundType This object describes the type of a background. Currently, it can be one of
+type BackgroundType struct {
+	*BackgroundTypeFill
+	*BackgroundTypeWallpaper
+	*BackgroundTypePattern
+	*BackgroundTypeChatTheme
+}
+
+// BackgroundTypeFill The background is automatically filled based on the selected colors.
+type BackgroundTypeFill struct {
+	Type             string         `json:"type"`
+	Fill             BackgroundFill `json:"fill"`
+	DarkThemeDimming int            `json:"dark_theme_dimming"`
+}
+
+// BackgroundFill This object describes the way a background is filled based on the selected colors.
+// Currently, it can be one of
+type BackgroundFill struct {
+	*BackgroundFillSolid
+	*BackgroundFillGradient
+	*BackgroundFillFreeformGradient
+}
+
+// BackgroundFillGradient The background is a gradient fill.
+type BackgroundFillGradient struct {
+	TYpe          string `json:"type"`
+	TopColor      int    `json:"top_color"`
+	BottomColor   int    `json:"bottom_color"`
+	RotationColor int    `json:"rotation_color"`
+}
+
+// BackgroundFillSolid The background is filled using the selected color.
+type BackgroundFillSolid struct {
+	Type  string `json:"type"`
+	Color int    `json:"color"`
+}
+
+// BackgroundFillFreeformGradient The background is a freeform gradient that rotates after every message in the chat.
+type BackgroundFillFreeformGradient struct {
+	Type   string `json:"type"`
+	Colors []int  `json:"colors"`
+}
+
+// BackgroundTypeWallpaper The background is a wallpaper in the JPEG format.
+type BackgroundTypeWallpaper struct {
+	Type             string   `json:"type"`
+	Document         Document `json:"document"`
+	DarkThemeDimming int      `json:"dark_theme_dimming"`
+	IsBlurred        bool     `json:"is_blurred,omitempty"`
+	IsMoving         bool     `json:"is_moving,omitempty"`
+}
+
+// BackgroundTypePattern The background is a PNG or TGV (gzipped subset of SVG with MIME type “application/x-tgwallpattern”)
+// pattern to be combined with the background fill chosen by the user.
+type BackgroundTypePattern struct {
+	Type       string         `json:"type"`
+	Document   Document       `json:"document"`
+	Fill       BackgroundFill `json:"fill"`
+	Intensity  int            `json:"intensity"`
+	IsInverted bool           `json:"is_inverted,omitempty"`
+	IsMoving   bool           `json:"is_moving,omitempty"`
+}
+
+// BackgroundTypeChatTheme The background is taken directly from a built-in chat theme.
+type BackgroundTypeChatTheme struct {
+	Type      string `json:"type"`
+	ThemeName string `json:"theme_name"`
+}
+
+// ForumTopicCreated This object represents a service message about a new forum topic created in the chat.
+type ForumTopicCreated struct {
+	Name              string `json:"name"`
+	IconColor         int    `json:"icon_color"`
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+}
+
+// ForumTopicEdited This object represents a service message about an edited forum topic.
+type ForumTopicEdited struct {
+	Name              string `json:"name,omitempty"`
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+}
+
+// ForumTopicClosed This object represents a service message about a forum topic closed in the chat.
+// Currently holds no information.
+type ForumTopicClosed struct {
+}
+
+// ForumTopicReopened This object represents a service message about a forum topic reopened in the chat.
+// Currently holds no information.
+type ForumTopicReopened struct {
+}
+
+// GeneralForumTopicHidden This object represents a service message about General forum topic hidden in the chat.
+// Currently holds no information.
+type GeneralForumTopicHidden struct {
+}
+
+// GeneralForumTopicUnhidden This object represents a service message about General forum topic unhidden in the chat.
+// Currently holds no information.
+type GeneralForumTopicUnhidden struct {
+}
+
+// GiveawayCreated This object represents a service message about the creation of a scheduled giveaway.
+type GiveawayCreated struct {
+	PrizeStarCount int `json:"prize_star_count"`
+}
+
+// Giveaway This object represents a message about a scheduled giveaway.
+type Giveaway struct {
+	Chats                         []Chat `json:"chats"`
+	WinnersSelectionDate          int64  `json:"winners_selection_date"`
+	WinnerCount                   int    `json:"winner_count"`
+	OnlyNewMembers                bool   `json:"only_new_members,omitempty"`
+	HasPublicWinners              bool   `json:"has_public_winners,omitempty"`
+	PrizeDescription              string `json:"prize_description,omitempty"`
+	CountryCodes                  []int  `json:"country_codes,omitempty"`
+	PrizeStarCount                int64  `json:"prize_star_count,omitempty"`
+	PremiumSubscriptionMonthCount int    `json:"premium_subscription_month_count,omitempty"`
+}
+
+// GiveawayWinners This object represents a message about the completion of a giveaway with public winners.
+type GiveawayWinners struct {
+	Chat                          Chat   `json:"chat"`
+	GiveawayMessageID             int    `json:"giveaway_message_id"`
+	WinnersSelectionDate          int64  `json:"winners_selection_date"`
+	WinnerCount                   int    `json:"winner_count"`
+	Winners                       []User `json:"winners"`
+	AdditionalChatCount           int    `json:"additional_chat_count,omitempty"`
+	PrizeStarCount                int64  `json:"prize_star_count,omitempty"`
+	PremiumSubscriptionMonthCount int    `json:"premium_subscription_month_count,omitempty"`
+	UnclaimedPrizeCount           int    `json:"unclaimed_prize_count,omitempty"`
+	OnlyNewMembers                bool   `json:"only_new_members,omitempty"`
+	WasRefunded                   bool   `json:"was_refunded,omitempty"`
+	PrizeDescription              string `json:"prize_description,omitempty"`
+}
+
+// GiveawayCompleted This object represents a service message about the completion of a giveaway without public winners.
+type GiveawayCompleted struct {
+	WinnerCount         int      `json:"winner_count"`
+	UnclaimedPrizeCount int      `json:"unclaimed_prize_count,omitempty"`
+	GiveawayMessage     *Message `json:"giveaway_message,omitempty"`
+	IsStarGiveaway      bool     `json:"is_star_giveaway,omitempty"`
 }

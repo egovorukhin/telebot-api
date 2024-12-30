@@ -36,15 +36,15 @@ func (t testLogger) Printf(format string, v ...interface{}) {
 }
 
 func getBot(t *testing.T) (*BotAPI, error) {
-	bot, err := NewBotAPI(TestToken)
+	bot, err := NewBotAPIWithClient(TestToken, APIEndpoint, &http.Client{})
+	if err != nil {
+		return nil, err
+	}
+
 	bot.Debug = true
 
 	logger := testLogger{t}
 	SetLogger(logger)
-
-	if err != nil {
-		t.Error(err)
-	}
 
 	return bot, err
 }
@@ -62,11 +62,23 @@ func TestGetUpdates(t *testing.T) {
 	bot.SetInterval(1 * time.Second)
 
 	u := NewUpdate(0)
+	u.AllowedUpdates = []string{"update_id", "message", "edited_message", "channel_post",
+		"edited_channel_post", "business_connection", "business_message", "edited_business_message",
+		"deleted_business_messages", "message_reaction", "message_reaction_count",
+		"inline_query", "chosen_inline_result", "callback_query", "shipping_query",
+		"pre_checkout_query", "purchased_paid_media", "poll", "poll_answer", "my_chat_member", "chat_member",
+		"chat_join_request", "chat_boost", "removed_chat_boost",
+	}
 
-	_, err := bot.GetUpdates(u)
+	for {
 
-	if err != nil {
-		t.Error(err)
+		updates, err := bot.GetUpdates(u)
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Println(updates)
+
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -1035,6 +1047,30 @@ func TestCommands(t *testing.T) {
 	if commands[0].Command != "private" || commands[0].Description != "a private command" {
 		t.Error("Commands were incorrectly set")
 	}
+}
+
+func TestBotAPI_GetChat(t *testing.T) {
+	bot, err := getBot(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := bot.GetChat(ChatInfoConfig{ChatConfig{ChatID: ChatID}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(info)
+}
+
+func TestBotAPI_GetChatMember(t *testing.T) {
+	bot, err := getBot(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	member, err := bot.GetChatMember(GetChatMemberConfig{ChatConfigWithUser{ChatID: ChatID, UserID: 0}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(member)
 }
 
 // TODO: figure out why test is failing
