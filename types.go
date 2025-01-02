@@ -61,6 +61,34 @@ type Update struct {
 	//
 	// optional
 	EditedChannelPost *Message `json:"edited_channel_post,omitempty"`
+	// BusinessConnection The bot was connected to or disconnected from a business account,
+	// or a user edited an existing connection with the bot
+	//
+	// optional
+	BusinessConnection *BusinessConnection `json:"business_connection,omitempty"`
+	// BusinessMessage New message from a connected business account
+	//
+	// optional
+	BusinessMessage *Message `json:"business_message,omitempty"`
+	// EditedBusinessMessage New version of a message from a connected business account
+	//
+	// optional
+	EditedBusinessMessage *Message `json:"edited_editor_message,omitempty"`
+	// DeletedBusinessMessages Messages were deleted from a connected business account
+	//
+	// optional
+	DeletedBusinessMessages *BusinessMessagesDeleted `json:"deleted_editor_messages,omitempty"`
+	// A reaction to a message was changed by a user.
+	// The bot must be an administrator in the chat and must explicitly specify "message_reaction"
+	// in the list of allowed_updates to receive these updates. The update isn't received for reactions set by bots.
+	//
+	// optional
+	MessageReaction *MessageReactionUpdated `json:"message_reaction,omitempty"`
+	// MessageReactionCount Reactions to a message with anonymous reactions were changed.
+	// The bot must be an administrator in the chat and must explicitly specify "message_reaction_count"
+	// in the list of allowed_updates to receive these updates.
+	// The updates are grouped and can be sent with delay up to a few minutes.
+	MessageReactionCount *MessageReactionCountUpdated `json:"message_reaction_count,omitempty"`
 	// InlineQuery new incoming inline query
 	//
 	// optional
@@ -86,6 +114,10 @@ type Update struct {
 	//
 	// optional
 	PreCheckoutQuery *PreCheckoutQuery `json:"pre_checkout_query,omitempty"`
+	// PurchasedPaidMedia A user purchased paid media with a non-empty payload sent by the bot in a non-channel chat
+	//
+	// optional
+	PurchasedPaidMedia *PaidMediaPurchased `json:"purchased_paid_media,omitempty"`
 	// Pool new poll state. Bots receive only updates about stopped polls and
 	// polls, which are sent by the bot
 	//
@@ -114,6 +146,16 @@ type Update struct {
 	//
 	// optional
 	ChatJoinRequest *ChatJoinRequest `json:"chat_join_request,omitempty"`
+	// ChatBoostA chat boost was added or changed.
+	// The bot must be an administrator in the chat to receive these updates.
+	//
+	// optional
+	ChatBoost *ChatBoostUpdated `json:"chat_boost,omitempty"`
+	// RemovedChatBoostA boost was removed from a chat.
+	// The bot must be an administrator in the chat to receive these updates.
+	//
+	// optional
+	RemovedChatBoost *ChatBoostRemoved `json:"removed_chat_boost,omitempty"`
 }
 
 // SentFrom returns the user who sent an update. Can be nil, if Telegram did not provide information
@@ -134,6 +176,12 @@ func (u *Update) SentFrom() *User {
 		return u.ShippingQuery.From
 	case u.PreCheckoutQuery != nil:
 		return u.PreCheckoutQuery.From
+	case u.MessageReaction != nil:
+		return u.MessageReaction.User
+	case u.BusinessMessage != nil:
+		return u.BusinessMessage.From
+	case u.EditedBusinessMessage != nil:
+		return u.EditedBusinessMessage.From
 	default:
 		return nil
 	}
@@ -160,6 +208,12 @@ func (u *Update) FromChat() *Chat {
 		return u.EditedChannelPost.Chat
 	case u.CallbackQuery != nil:
 		return u.CallbackQuery.Message.Chat
+	case u.MessageReaction != nil:
+		return u.MessageReaction.Chat
+	case u.BusinessMessage != nil:
+		return u.BusinessMessage.Chat
+	case u.EditedBusinessMessage != nil:
+		return u.EditedBusinessMessage.Chat
 	default:
 		return nil
 	}
@@ -3788,10 +3842,144 @@ type GiveawayWinners struct {
 	PrizeDescription              string `json:"prize_description,omitempty"`
 }
 
-// GiveawayCompleted This object represents a service message about the completion of a giveaway without public winners.
+// GiveawayCompleted This object represents a service message about the completion of
+// a giveaway without public winners.
 type GiveawayCompleted struct {
 	WinnerCount         int      `json:"winner_count"`
 	UnclaimedPrizeCount int      `json:"unclaimed_prize_count,omitempty"`
 	GiveawayMessage     *Message `json:"giveaway_message,omitempty"`
 	IsStarGiveaway      bool     `json:"is_star_giveaway,omitempty"`
+}
+
+// BusinessConnection Describes the connection of the bot with a business account.
+type BusinessConnection struct {
+	ID         string `json:"id"`
+	User       User   `json:"user"`
+	UserChatID string `json:"user_chat_id"`
+	Date       int64  `json:"date"`
+	CanReply   bool   `json:"can_reply"`
+	IsEnabled  bool   `json:"is_enabled"`
+}
+
+// BusinessMessagesDeleted This object is received when messages are deleted from a connected business account.
+type BusinessMessagesDeleted struct {
+	BusinessConnectionID string `json:"business_connection_id"`
+	Chat                 Chat   `json:"chat"`
+	MessageIDs           []int  `json:"message_ids"`
+}
+
+// MessageReactionUpdated This object represents a change of a reaction on a message performed by a user.
+type MessageReactionUpdated struct {
+	Chat        *Chat          `json:"chat,omitempty"`
+	MessageID   int            `json:"message_id"`
+	User        *User          `json:"user,omitempty"`
+	ActorChat   *Chat          `json:"actor_chat,omitempty"`
+	Date        int64          `json:"date"`
+	OldReaction []ReactionType `json:"old_reaction,omitempty"`
+	NewReaction []ReactionType `json:"new_reaction,omitempty"`
+}
+
+// ReactionType This object describes the type of a reaction. Currently, it can be one of
+type ReactionType struct {
+	*ReactionTypeEmoji
+	*ReactionTypeCustomEmoji
+	*ReactionTypePaid
+}
+
+// ReactionTypeEmoji The reaction is based on an emoji.
+type ReactionTypeEmoji struct {
+	Type  string `json:"type"`
+	Emoji string `json:"emoji"`
+}
+
+// ReactionTypeCustomEmoji The reaction is based on a custom emoji.
+type ReactionTypeCustomEmoji struct {
+	Type          string `json:"type"`
+	CustomEmojiID string `json:"custom_emoji_id"`
+}
+
+// ReactionTypePaid The reaction is paid.
+type ReactionTypePaid struct {
+	Type string `json:"type"`
+}
+
+// ReactionCount Represents a reaction added to a message along with the number of times it was added.
+type ReactionCount struct {
+	Type       string `json:"type"`
+	TotalCount int    `json:"total_count"`
+}
+
+// MessageReactionCountUpdated This object represents reaction changes on a message with anonymous reactions.
+type MessageReactionCountUpdated struct {
+	Chat      Chat            `json:"chat"`
+	MessageID int             `json:"message_id"`
+	Date      int64           `json:"date"`
+	Reactions []ReactionCount `json:"reactions"`
+}
+
+// PaidMediaPurchased This object contains information about a paid media purchase.
+type PaidMediaPurchased struct {
+	From             User   `json:"from"`
+	PaidMediaPayload string `json:"paid_media_payload"`
+}
+
+// ChatBoostUpdated This object represents a boost added to a chat or changed.
+type ChatBoostUpdated struct {
+	Chat  Chat      `json:"chat"`
+	Boost ChatBoost `json:"boost"`
+}
+
+// ChatBoost This object contains information about a chat boost.
+type ChatBoost struct {
+	BoostID        string          `json:"boost_id"`
+	AddDate        int64           `json:"add_date"`
+	ExpirationDate int64           `json:"expiration_date"`
+	Source         ChatBoostSource `json:"source"`
+}
+
+// ChatBoostSource This object describes the source of a chat boost. It can be one of
+type ChatBoostSource struct {
+	*ChatBoostSourcePremium
+	*ChatBoostSourceGiftCode
+	*ChatBoostSourceGiveaway
+}
+
+// ChatBoostSourcePremium The boost was obtained by subscribing to Telegram Premium
+// or by gifting a Telegram Premium subscription to another user.
+type ChatBoostSourcePremium struct {
+	Source string `json:"source"`
+	User   User   `json:"user"`
+}
+
+// ChatBoostSourceGiftCode The boost was obtained by the creation of Telegram Premium
+// gift codes to boost a chat. Each such code boosts the chat 4 times for the duration
+// of the corresponding Telegram Premium subscription.
+type ChatBoostSourceGiftCode struct {
+	Source string `json:"source"`
+	User   User   `json:"user"`
+}
+
+// ChatBoostSourceGiveaway The boost was obtained by the creation of a Telegram Premium
+// or a Telegram Star giveaway. This boosts the chat 4 times for the duration of the
+// corresponding Telegram Premium subscription for Telegram Premium giveaways and
+// prize_star_count / 500 times for one year for Telegram Star giveaways.
+type ChatBoostSourceGiveaway struct {
+	Source            string `json:"source"`
+	GiveawayMessageID int    `json:"giveaway_message_id"`
+	User              User   `json:"user"`
+	PrizeStarCount    int    `json:"prize_star_count,omitempty"`
+	IsUnclaimed       bool   `json:"is_unclaimed,omitempty"`
+}
+
+// ChatBoostRemoved This object represents a boost removed from a chat.
+type ChatBoostRemoved struct {
+	Chat       Chat            `json:"chat"`
+	BoostID    string          `json:"boost_id"`
+	RemoveDate int64           `json:"remove_date"`
+	Source     ChatBoostSource `json:"source"`
+}
+
+// UserChatBoosts This object represents a list of boosts added to a chat by a user.
+type UserChatBoosts struct {
+	Boosts []ChatBoost `json:"boosts"`
 }
