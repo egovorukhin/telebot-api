@@ -1781,6 +1781,17 @@ type ChatAdministratorRights struct {
 
 // ChatMember contains information about one member of a chat.
 type ChatMember struct {
+	// Status the member's status in the chat.
+	// Can be
+	//  “creator”,
+	//  “administrator”,
+	//  “member”,
+	//  “restricted”,
+	//  “left” or
+	//  “kicked”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
 	*ChatMemberOwner
 	*ChatMemberAdministrator
 	*ChatMemberMember
@@ -1791,32 +1802,32 @@ type ChatMember struct {
 
 // IsCreator returns if the ChatMember was the creator of the chat.
 func (chat ChatMember) IsCreator() bool {
-	return chat.ChatMemberOwner != nil && chat.ChatMemberOwner.Status == "creator"
+	return chat.Status == "creator"
 }
 
 // IsAdministrator returns if the ChatMember is a chat administrator.
 func (chat ChatMember) IsAdministrator() bool {
-	return chat.ChatMemberAdministrator != nil && chat.ChatMemberAdministrator.Status == "administrator"
+	return chat.Status == "administrator"
 }
 
 // HasLeft returns if the ChatMember left the chat.
 func (chat ChatMember) HasLeft() bool {
-	return chat.ChatMemberLeft != nil && chat.ChatMemberLeft.Status == "left"
+	return chat.Status == "left"
 }
 
 // WasKicked returns if the ChatMember was kicked from the chat.
 func (chat ChatMember) WasKicked() bool {
-	return chat.ChatMemberBanned != nil && chat.ChatMemberBanned.Status == "kicked"
+	return chat.Status == "kicked"
 }
 
 // IsMember returns if the ChatMember is a chat member.
 func (chat ChatMember) IsMember() bool {
-	return chat.ChatMemberMember != nil && chat.ChatMemberMember.Status == "member"
+	return chat.Status == "member"
 }
 
-// IsRestricted returns if the ChatMember is a chat restricted.
-func (chat ChatMember) IsRestricted() bool {
-	return chat.ChatMemberRestricted != nil && chat.ChatMemberRestricted.Status == "restricted"
+// WasRestricted returns if the ChatMember is a chat restricted.
+func (chat ChatMember) WasRestricted() bool {
+	return chat.Status == "restricted"
 }
 
 // ChatMemberUpdated represents changes in the status of a chat member.
@@ -3918,17 +3929,6 @@ type UserChatBoosts struct {
 
 // ChatMemberOwner Represents a chat member that owns the chat and has all administrator privileges.
 type ChatMemberOwner struct {
-	// Status the member's status in the chat.
-	// Can be
-	//  “creator”,
-	//  “administrator”,
-	//  “member”,
-	//  “restricted”,
-	//  “left” or
-	//  “kicked”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
 	// IsAnonymous owner and administrators only. True, if the user's presence
 	// in the chat is hidden
 	//
@@ -3942,10 +3942,6 @@ type ChatMemberOwner struct {
 
 // ChatMemberAdministrator Represents a chat member that has some additional privileges.
 type ChatMemberAdministrator struct {
-	// Status The member's status in the chat, always “administrator”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
 	// CanBeEdited administrators only.
 	// True, if the bot is allowed to edit administrator privileges of that user.
 	//
@@ -3960,10 +3956,6 @@ type ChatMemberAdministrator struct {
 
 // ChatMemberMember Represents a chat member that has no additional privileges or restrictions.
 type ChatMemberMember struct {
-	// Status The member's status in the chat, always “member”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
 	// UntilDate restricted and kicked only.
 	// Date when restrictions will be lifted for this user;
 	// unix time.
@@ -3974,10 +3966,6 @@ type ChatMemberMember struct {
 
 // ChatMemberRestricted Represents a chat member that is under certain restrictions in the chat. Supergroups only.
 type ChatMemberRestricted struct {
-	// Status The member's status in the chat, always “restricted”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
 	// IsMember is true, if the user is a member of the chat at the moment of
 	// the request
 	IsMember bool `json:"is_member"`
@@ -4032,19 +4020,10 @@ type ChatMemberRestricted struct {
 }
 
 // ChatMemberLeft Represents a chat member that isn't currently a member of the chat, but may join it themselves.
-type ChatMemberLeft struct {
-	// Status The member's status in the chat, always “left”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
-}
+type ChatMemberLeft struct{}
 
 // ChatMemberBanned Represents a chat member that was banned in the chat and can't return to the chat or view chat messages.
 type ChatMemberBanned struct {
-	// Status The member's status in the chat, always “kicked”
-	Status string `json:"status"`
-	// User information about the user
-	User *User `json:"user"`
 	// UntilDate restricted and kicked only.
 	// Date when restrictions will be lifted for this user;
 	// unix time.
