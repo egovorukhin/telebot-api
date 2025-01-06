@@ -32,7 +32,8 @@ type BotAPI struct {
 
 	out io.Writer
 
-	apiEndpoint string
+	apiEndpoint  string
+	fileEndpoint string
 }
 
 // NewBotAPI creates a new BotAPI instance.
@@ -85,6 +86,11 @@ func (bot *BotAPI) SetAPIEndpoint(apiEndpoint string) {
 	bot.apiEndpoint = apiEndpoint
 }
 
+// SetFileEndpoint changes the Telegram Bot fileEndpoint used by the instance.
+func (bot *BotAPI) SetFileEndpoint(fileEndpoint string) {
+	bot.fileEndpoint = fileEndpoint
+}
+
 func buildParams(in Params) url.Values {
 	if in == nil {
 		return url.Values{}
@@ -99,8 +105,9 @@ func buildParams(in Params) url.Values {
 	return out
 }
 
+// DownloadFile Скачать файл
 func (bot *BotAPI) DownloadFile(filePath string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf(FileEndpoint, bot.Token, filePath), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf(bot.fileEndpoint, bot.Token, filePath), nil)
 	if err != nil {
 		return nil, err
 	}

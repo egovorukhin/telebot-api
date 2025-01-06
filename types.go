@@ -1416,7 +1416,14 @@ type File struct {
 //
 // It requires the Bot token to create the link.
 func (f *File) Link(token string) string {
-	return fmt.Sprintf(FileEndpoint, token, f.FilePath)
+	return f.LinkFileEndpoint(FileEndpoint, token)
+}
+
+// LinkFileEndpoint returns a full path to the download URL for a File.
+//
+// It requires the Bot token to create the link.
+func (f *File) LinkFileEndpoint(fileEndpoint, token string) string {
+	return fmt.Sprintf(fileEndpoint, token, f.FilePath)
 }
 
 // WebAppInfo contains information about a Web App.
