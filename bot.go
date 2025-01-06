@@ -579,16 +579,16 @@ func WriteToHTTPResponse(w http.ResponseWriter, c Chattable) error {
 }
 
 // GetChat gets information about a chat.
-func (bot *BotAPI) GetChat(config ChatInfoConfig) (Chat, error) {
+func (bot *BotAPI) GetChat(config ChatInfoConfig) (ChatFullInfo, error) {
 	resp, err := bot.Request(config)
 	if err != nil {
-		return Chat{}, err
+		return ChatFullInfo{}, err
 	}
 
-	var chat Chat
-	err = json.Unmarshal(resp.Result, &chat)
+	var info ChatFullInfo
+	err = json.Unmarshal(resp.Result, &info)
 
-	return chat, err
+	return info, err
 }
 
 // GetChatAdministrators gets a list of administrators in the chat.
