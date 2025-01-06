@@ -182,6 +182,8 @@ func (u *Update) SentFrom() *User {
 		return u.BusinessMessage.From
 	case u.EditedBusinessMessage != nil:
 		return u.EditedBusinessMessage.From
+	case u.ChatMember != nil:
+		return u.ChatMember.From
 	default:
 		return nil
 	}
@@ -214,6 +216,8 @@ func (u *Update) FromChat() *Chat {
 		return u.BusinessMessage.Chat
 	case u.EditedBusinessMessage != nil:
 		return u.EditedBusinessMessage.Chat
+	case u.ChatMember != nil:
+		return u.ChatMember.Chat
 	default:
 		return nil
 	}
@@ -1766,149 +1770,61 @@ type ChatAdministratorRights struct {
 	CanPromoteMembers   bool `json:"can_promote_members"`
 	CanChangeInfo       bool `json:"can_change_info"`
 	CanInviteUsers      bool `json:"can_invite_users"`
+	CanPostStories      bool `json:"can_post_stories"`
+	CanEditStories      bool `json:"can_edit_stories"`
+	CanDeleteStories    bool `json:"can_delete_stories"`
 	CanPostMessages     bool `json:"can_post_messages"`
 	CanEditMessages     bool `json:"can_edit_messages"`
 	CanPinMessages      bool `json:"can_pin_messages"`
+	CanManageTopics     bool `json:"can_manage_topics"`
 }
 
 // ChatMember contains information about one member of a chat.
 type ChatMember struct {
-	// User information about the user
-	User *User `json:"user"`
-	// Status the member's status in the chat.
-	// Can be
-	//  “creator”,
-	//  “administrator”,
-	//  “member”,
-	//  “restricted”,
-	//  “left” or
-	//  “kicked”
-	Status string `json:"status"`
-	// CustomTitle owner and administrators only. Custom title for this user
-	//
-	// optional
-	CustomTitle string `json:"custom_title,omitempty"`
-	// IsAnonymous owner and administrators only. True, if the user's presence
-	// in the chat is hidden
-	//
-	// optional
-	IsAnonymous bool `json:"is_anonymous,omitempty"`
-	// UntilDate restricted and kicked only.
-	// Date when restrictions will be lifted for this user;
-	// unix time.
-	//
-	// optional
-	UntilDate int64 `json:"until_date,omitempty"`
-	// CanBeEdited administrators only.
-	// True, if the bot is allowed to edit administrator privileges of that user.
-	//
-	// optional
-	CanBeEdited bool `json:"can_be_edited,omitempty"`
-	// CanManageChat administrators only.
-	// True, if the administrator can access the chat event log, chat
-	// statistics, message statistics in channels, see channel members, see
-	// anonymous administrators in supergroups and ignore slow mode. Implied by
-	// any other administrator privilege.
-	//
-	// optional
-	CanManageChat bool `json:"can_manage_chat,omitempty"`
-	// CanPostMessages administrators only.
-	// True, if the administrator can post in the channel;
-	// channels only.
-	//
-	// optional
-	CanPostMessages bool `json:"can_post_messages,omitempty"`
-	// CanEditMessages administrators only.
-	// True, if the administrator can edit messages of other users and can pin messages;
-	// channels only.
-	//
-	// optional
-	CanEditMessages bool `json:"can_edit_messages,omitempty"`
-	// CanDeleteMessages administrators only.
-	// True, if the administrator can delete messages of other users.
-	//
-	// optional
-	CanDeleteMessages bool `json:"can_delete_messages,omitempty"`
-	// CanManageVideoChats administrators only.
-	// True, if the administrator can manage video chats.
-	//
-	// optional
-	CanManageVideoChats bool `json:"can_manage_video_chats,omitempty"`
-	// CanRestrictMembers administrators only.
-	// True, if the administrator can restrict, ban or unban chat members.
-	//
-	// optional
-	CanRestrictMembers bool `json:"can_restrict_members,omitempty"`
-	// CanPromoteMembers administrators only.
-	// True, if the administrator can add new administrators
-	// with a subset of their own privileges or demote administrators that he has promoted,
-	// directly or indirectly (promoted by administrators that were appointed by the user).
-	//
-	// optional
-	CanPromoteMembers bool `json:"can_promote_members,omitempty"`
-	// CanChangeInfo administrators and restricted only.
-	// True, if the user is allowed to change the chat title, photo and other settings.
-	//
-	// optional
-	CanChangeInfo bool `json:"can_change_info,omitempty"`
-	// CanInviteUsers administrators and restricted only.
-	// True, if the user is allowed to invite new users to the chat.
-	//
-	// optional
-	CanInviteUsers bool `json:"can_invite_users,omitempty"`
-	// CanPinMessages administrators and restricted only.
-	// True, if the user is allowed to pin messages; groups and supergroups only
-	//
-	// optional
-	CanPinMessages bool `json:"can_pin_messages,omitempty"`
-	// IsMember is true, if the user is a member of the chat at the moment of
-	// the request
-	IsMember bool `json:"is_member"`
-	// CanSendMessages
-	//
-	// optional
-	CanSendMessages bool `json:"can_send_messages,omitempty"`
-	// CanSendMediaMessages restricted only.
-	// True, if the user is allowed to send text messages, contacts, locations and venues
-	//
-	// optional
-	CanSendMediaMessages bool `json:"can_send_media_messages,omitempty"`
-	// CanSendPolls restricted only.
-	// True, if the user is allowed to send polls
-	//
-	// optional
-	CanSendPolls bool `json:"can_send_polls,omitempty"`
-	// CanSendOtherMessages restricted only.
-	// True, if the user is allowed to send audios, documents,
-	// photos, videos, video notes and voice notes.
-	//
-	// optional
-	CanSendOtherMessages bool `json:"can_send_other_messages,omitempty"`
-	// CanAddWebPagePreviews restricted only.
-	// True, if the user is allowed to add web page previews to their messages.
-	//
-	// optional
-	CanAddWebPagePreviews bool `json:"can_add_web_page_previews,omitempty"`
+	*ChatMemberOwner
+	*ChatMemberAdministrator
+	*ChatMemberMember
+	*ChatMemberRestricted
+	*ChatMemberLeft
+	*ChatMemberBanned
 }
 
 // IsCreator returns if the ChatMember was the creator of the chat.
-func (chat ChatMember) IsCreator() bool { return chat.Status == "creator" }
+func (chat ChatMember) IsCreator() bool {
+	return chat.ChatMemberOwner != nil && chat.ChatMemberOwner.Status == "creator"
+}
 
 // IsAdministrator returns if the ChatMember is a chat administrator.
-func (chat ChatMember) IsAdministrator() bool { return chat.Status == "administrator" }
+func (chat ChatMember) IsAdministrator() bool {
+	return chat.ChatMemberAdministrator != nil && chat.ChatMemberAdministrator.Status == "administrator"
+}
 
 // HasLeft returns if the ChatMember left the chat.
-func (chat ChatMember) HasLeft() bool { return chat.Status == "left" }
+func (chat ChatMember) HasLeft() bool {
+	return chat.ChatMemberLeft != nil && chat.ChatMemberLeft.Status == "left"
+}
 
 // WasKicked returns if the ChatMember was kicked from the chat.
-func (chat ChatMember) WasKicked() bool { return chat.Status == "kicked" }
+func (chat ChatMember) WasKicked() bool {
+	return chat.ChatMemberBanned != nil && chat.ChatMemberBanned.Status == "kicked"
+}
+
+// IsMember returns if the ChatMember is a chat member.
+func (chat ChatMember) IsMember() bool {
+	return chat.ChatMemberMember != nil && chat.ChatMemberMember.Status == "member"
+}
+
+// IsRestricted returns if the ChatMember is a chat restricted.
+func (chat ChatMember) IsRestricted() bool {
+	return chat.ChatMemberRestricted != nil && chat.ChatMemberRestricted.Status == "restricted"
+}
 
 // ChatMemberUpdated represents changes in the status of a chat member.
 type ChatMemberUpdated struct {
 	// Chat the user belongs to.
-	Chat Chat `json:"chat"`
+	Chat *Chat `json:"chat"`
 	// From is the performer of the action, which resulted in the change.
-	From User `json:"from"`
+	From *User `json:"from"`
 	// Date the change was done in Unix time.
 	Date int `json:"date"`
 	// Previous information about the chat member.
@@ -1920,6 +1836,15 @@ type ChatMemberUpdated struct {
 	//
 	// optional
 	InviteLink *ChatInviteLink `json:"invite_link,omitempty"`
+	// True, if the user joined the chat after sending a direct join request
+	// without using an invite link and being approved by an administrator
+	//
+	// optional
+	ViaJoinRequest bool `json:"via_join_request,omitempty"`
+	// True, if the user joined the chat via a chat folder invite link
+	//
+	// optional
+	ViaChatFolderInviteLink bool `json:"via_chat_folder_invite_link,omitempty"`
 }
 
 // ChatJoinRequest represents a join request sent to a chat.
@@ -3989,4 +3914,141 @@ type ChatBoostRemoved struct {
 // UserChatBoosts This object represents a list of boosts added to a chat by a user.
 type UserChatBoosts struct {
 	Boosts []ChatBoost `json:"boosts"`
+}
+
+// ChatMemberOwner Represents a chat member that owns the chat and has all administrator privileges.
+type ChatMemberOwner struct {
+	// Status the member's status in the chat.
+	// Can be
+	//  “creator”,
+	//  “administrator”,
+	//  “member”,
+	//  “restricted”,
+	//  “left” or
+	//  “kicked”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+	// IsAnonymous owner and administrators only. True, if the user's presence
+	// in the chat is hidden
+	//
+	// optional
+	IsAnonymous bool `json:"is_anonymous,omitempty"`
+	// CustomTitle owner and administrators only. Custom title for this user
+	//
+	// optional
+	CustomTitle string `json:"custom_title,omitempty"`
+}
+
+// ChatMemberAdministrator Represents a chat member that has some additional privileges.
+type ChatMemberAdministrator struct {
+	// Status The member's status in the chat, always “administrator”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+	// CanBeEdited administrators only.
+	// True, if the bot is allowed to edit administrator privileges of that user.
+	//
+	// optional
+	CanBeEdited bool `json:"can_be_edited,omitempty"`
+	ChatAdministratorRights
+	// CustomTitle owner and administrators only. Custom title for this user
+	//
+	// optional
+	CustomTitle string `json:"custom_title,omitempty"`
+}
+
+// ChatMemberMember Represents a chat member that has no additional privileges or restrictions.
+type ChatMemberMember struct {
+	// Status The member's status in the chat, always “member”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+	// UntilDate restricted and kicked only.
+	// Date when restrictions will be lifted for this user;
+	// unix time.
+	//
+	// optional
+	UntilDate int64 `json:"until_date,omitempty"`
+}
+
+// ChatMemberRestricted Represents a chat member that is under certain restrictions in the chat. Supergroups only.
+type ChatMemberRestricted struct {
+	// Status The member's status in the chat, always “restricted”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+	// IsMember is true, if the user is a member of the chat at the moment of
+	// the request
+	IsMember bool `json:"is_member"`
+	// CanSendMessages
+	//
+	// optional
+	CanSendMessages   bool `json:"can_send_messages"`
+	CanSendAudios     bool `json:"can_send_audios"`
+	CanSendDocuments  bool `json:"can_send_documents"`
+	CanSendPhotos     bool `json:"can_send_photos"`
+	CanSendVideos     bool `json:"can_send_videos"`
+	CanSendVideoNotes bool `json:"can_send_video_notes"`
+	CanSendVoiceNotes bool `json:"can_send_voice_notes"`
+	// CanSendPolls restricted only.
+	// True, if the user is allowed to send polls
+	//
+	// optional
+	CanSendPolls bool `json:"can_send_polls"`
+	// CanSendOtherMessages restricted only.
+	// True, if the user is allowed to send audios, documents,
+	// photos, videos, video notes and voice notes.
+	//
+	// optional
+	CanSendOtherMessages bool `json:"can_send_other_messages"`
+	// CanAddWebPagePreviews restricted only.
+	// True, if the user is allowed to add web page previews to their messages.
+	//
+	// optional
+	CanAddWebPagePreviews bool `json:"can_add_web_page_previews"`
+	// CanChangeInfo administrators and restricted only.
+	// True, if the user is allowed to change the chat title, photo and other settings.
+	//
+	// optional
+	CanChangeInfo bool `json:"can_change_info"`
+	// CanInviteUsers administrators and restricted only.
+	// True, if the user is allowed to invite new users to the chat.
+	//
+	// optional
+	CanInviteUsers bool `json:"can_invite_users,omitempty"`
+	// CanPinMessages administrators and restricted only.
+	// True, if the user is allowed to pin messages; groups and supergroups only
+	//
+	// optional
+	CanPinMessages  bool `json:"can_pin_messages,omitempty"`
+	CanManageTopics bool `json:"can_manage_topics"`
+	// UntilDate restricted and kicked only.
+	// Date when restrictions will be lifted for this user;
+	// unix time.
+	//
+	// optional
+	UntilDate int64 `json:"until_date,omitempty"`
+}
+
+// ChatMemberLeft Represents a chat member that isn't currently a member of the chat, but may join it themselves.
+type ChatMemberLeft struct {
+	// Status The member's status in the chat, always “left”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+}
+
+// ChatMemberBanned Represents a chat member that was banned in the chat and can't return to the chat or view chat messages.
+type ChatMemberBanned struct {
+	// Status The member's status in the chat, always “kicked”
+	Status string `json:"status"`
+	// User information about the user
+	User *User `json:"user"`
+	// UntilDate restricted and kicked only.
+	// Date when restrictions will be lifted for this user;
+	// unix time.
+	//
+	// optional
+	UntilDate int64 `json:"until_date,omitempty"`
 }
