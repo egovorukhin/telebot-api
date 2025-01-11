@@ -568,7 +568,7 @@ type Message struct {
 	// optional
 	SenderBusinessBot *User `json:"sender_business_bot,omitempty"`
 	// Date of the message was sent in Unix time
-	Date int `json:"date"`
+	Date int64 `json:"date"`
 	// BusinessConnectionId unique identifier of the business connection from which the message was received. If non-empty, the message belongs to a chat of the corresponding business account that is independent from any potential bot chat which might share the same identifier.
 	//
 	// optional
@@ -3923,6 +3923,7 @@ type MessageReactionUpdated struct {
 
 // ReactionType This object describes the type of a reaction. Currently, it can be one of
 type ReactionType struct {
+	Type string `json:"type"`
 	*ReactionTypeEmoji
 	*ReactionTypeCustomEmoji
 	*ReactionTypePaid
@@ -3930,20 +3931,16 @@ type ReactionType struct {
 
 // ReactionTypeEmoji The reaction is based on an emoji.
 type ReactionTypeEmoji struct {
-	Type  string `json:"type"`
 	Emoji string `json:"emoji"`
 }
 
 // ReactionTypeCustomEmoji The reaction is based on a custom emoji.
 type ReactionTypeCustomEmoji struct {
-	Type          string `json:"type"`
 	CustomEmojiID string `json:"custom_emoji_id"`
 }
 
 // ReactionTypePaid The reaction is paid.
-type ReactionTypePaid struct {
-	Type string `json:"type"`
-}
+type ReactionTypePaid struct{}
 
 // ReactionCount Represents a reaction added to a message along with the number of times it was added.
 type ReactionCount struct {
