@@ -94,6 +94,18 @@ func TestSendWithMessage(t *testing.T) {
 	}
 }
 
+func TestSendWithMessageThread(t *testing.T) {
+	bot, _ := getBot(t)
+
+	msg := NewMessageThread(ChatID, 1, "A test message from the test library in telegram-bot-api")
+	msg.ParseMode = ModeMarkdown
+	_, err := bot.Send(msg)
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSendWithMessageReply(t *testing.T) {
 	bot, _ := getBot(t)
 

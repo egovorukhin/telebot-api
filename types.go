@@ -184,6 +184,8 @@ func (u *Update) SentFrom() *User {
 		return u.EditedBusinessMessage.From
 	case u.ChatMember != nil:
 		return u.ChatMember.From
+	case u.ChatJoinRequest != nil:
+		return u.ChatJoinRequest.From
 	default:
 		return nil
 	}
@@ -218,6 +220,8 @@ func (u *Update) FromChat() *Chat {
 		return u.EditedBusinessMessage.Chat
 	case u.ChatMember != nil:
 		return u.ChatMember.Chat
+	case u.ChatJoinRequest != nil:
+		return u.ChatJoinRequest.Chat
 	default:
 		return nil
 	}
@@ -1969,9 +1973,9 @@ type ChatMemberUpdated struct {
 // ChatJoinRequest represents a join request sent to a chat.
 type ChatJoinRequest struct {
 	// Chat to which the request was sent.
-	Chat Chat `json:"chat"`
+	Chat *Chat `json:"chat"`
 	// User that sent the join request.
-	From User `json:"from"`
+	From *User `json:"from"`
 	// Date the request was sent in Unix time.
 	Date int `json:"date"`
 	// Bio of the user.

@@ -26,9 +26,9 @@ func NewMessageThread(chatID int64, threadId int, text string) MessageConfig {
 		BaseChat: BaseChat{
 			ChatID:           chatID,
 			ReplyToMessageID: 0,
+			MessageThreadId:  threadId,
 		},
 		Text:                  text,
-		MessageThreadId:       threadId,
 		DisableWebPagePreview: false,
 	}
 }
@@ -86,10 +86,23 @@ func NewCopyMessage(chatID int64, fromChatID int64, messageID int) CopyMessageCo
 //
 // Note that you must send animated GIFs as a document.
 func NewPhoto(chatID int64, file RequestFileData) PhotoConfig {
+	return NewPhotoThreadId(chatID, 0, file)
+}
+
+// NewPhotoThreadId creates a new sendPhoto request.
+//
+// chatID is where to send it, file is a string path to the file,
+// FileReader, or FileBytes.
+//
+// Note that you must send animated GIFs as a document.
+func NewPhotoThreadId(chatID int64, threadId int, file RequestFileData) PhotoConfig {
 	return PhotoConfig{
 		BaseFile: BaseFile{
-			BaseChat: BaseChat{ChatID: chatID},
-			File:     file,
+			BaseChat: BaseChat{
+				ChatID:          chatID,
+				MessageThreadId: threadId,
+			},
+			File: file,
 		},
 	}
 }
