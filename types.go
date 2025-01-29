@@ -214,6 +214,8 @@ func (u *Update) FromChat() *Chat {
 		return u.CallbackQuery.Message.Chat
 	case u.MessageReaction != nil:
 		return u.MessageReaction.Chat
+	case u.MessageReactionCount != nil:
+		return u.MessageReactionCount.Chat
 	case u.BusinessMessage != nil:
 		return u.BusinessMessage.Chat
 	case u.EditedBusinessMessage != nil:
@@ -3963,7 +3965,7 @@ type ReactionCount struct {
 
 // MessageReactionCountUpdated This object represents reaction changes on a message with anonymous reactions.
 type MessageReactionCountUpdated struct {
-	Chat      Chat            `json:"chat"`
+	Chat      *Chat           `json:"chat"`
 	MessageID int             `json:"message_id"`
 	Date      int64           `json:"date"`
 	Reactions []ReactionCount `json:"reactions"`
