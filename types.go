@@ -3957,8 +3957,8 @@ type ReactionTypePaid struct{}
 
 // ReactionCount Represents a reaction added to a message along with the number of times it was added.
 type ReactionCount struct {
-	Type       string `json:"type"`
-	TotalCount int    `json:"total_count"`
+	Type       ReactionType `json:"type"`
+	TotalCount int          `json:"total_count"`
 }
 
 // MessageReactionCountUpdated This object represents reaction changes on a message with anonymous reactions.
